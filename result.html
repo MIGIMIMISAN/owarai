@@ -2,7 +2,6 @@
 <html lang="ja">
 
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -14,7 +13,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
-
 </head>
 
 <body>
@@ -25,38 +23,22 @@
 
 <div class="result-card">
 
-<div id="typeCode" class="typeCode">
+<div id="typeCode" class="typeCode">---</div>
 
-IPCQ
+<div id="typeName" class="typeName">芸人タイプ</div>
 
-</div>
-
-<div id="typeName" class="typeName">
-
-芸人タイプ
-
-</div>
-
-<p id="description" class="description">
-
-診断結果を読み込み中...
-
-</p>
+<p id="description" class="description">診断結果を読み込み中...</p>
 
 </div>
 
 <div class="buttonArea">
 
 <button onclick="shareResult()" class="nextButton">
-
 Xでシェア
-
 </button>
 
 <a href="index.html" class="restartButton">
-
 もう一度診断する
-
 </a>
 
 </div>
@@ -65,138 +47,114 @@ Xでシェア
 
 <script>
 
-let answers={};
+let answers = {};
 
-for(let i=1;i<=6;i++){
-
-Object.assign(
-
-answers,
-
-JSON.parse(localStorage.getItem("question"+i))
-
-);
-
+// localStorage安全読み込み
+for (let i = 1; i <= 6; i++) {
+  const data = JSON.parse(localStorage.getItem("question" + i) || "{}");
+  Object.assign(answers, data);
 }
 
-function avg(list){
+// 平均計算（NaN防止付き）
+function avg(list) {
+  let sum = 0;
+  let count = 0;
 
-let sum=0;
+  list.forEach(v => {
+    const val = Number(answers[v]);
+    if (!isNaN(val)) {
+      sum += val;
+      count++;
+    }
+  });
 
-list.forEach(v=>{
-
-sum+=Number(answers[v]);
-
-});
-
-return sum/list.length;
-
+  return count === 0 ? 0 : sum / count;
 }
+
+/* =========================
+   軸計算
+========================= */
 
 // I ⇔ B
-
-const IB=avg(["q4","q8","q12","q15","q17","q21"]);
-
-const first=IB>=3?"I":"B";
+const IB = avg(["q4","q8","q12","q15","q17","q21"]);
+const first = IB >= 3 ? "I" : "B";
 
 // P ⇔ S
-
-const PS=avg(["q2","q5","q10","q13","q18","q22"]);
-
-const second=PS>=3?"P":"S";
+const PS = avg(["q2","q5","q10","q13","q18","q22"]);
+const second = PS >= 3 ? "P" : "S";
 
 // A ⇔ N
+const CN = avg(["q1","q7","q11","q16","q19","q23"]);
+const third = CN >= 3 ? "A" : "N";
 
-const CN=avg(["q1","q7","q11","q16","q19","q23"]);
+// O ⇔ C（←ここ修正済み）
+const CO = avg(["q3","q6","q9","q14","q20","q24"]);
+const fourth = CO >= 3 ? "C" : "O";
 
-const third=CN>=3?"A":"N";
+/* =========================
+   タイプ生成
+========================= */
 
-// O ⇔ C
+const type = first + second + third + fourth;
 
-const CO=avg(["q3","q6","q9","q14","q20","q24"]);
+document.getElementById("typeCode").innerHTML = type;
 
-const fourth=QA>=3?"C":"O";
+/* =========================
+   結果データ
+========================= */
 
-const type=first+second+third+fourth;
-
-document.getElementById("typeCode").innerHTML=type;
-
-const resultData={
-
+const resultData = {
 PIAO:{
 name:"タイプA",
 text:"構成力と静かな表現を武器にする分析型。"
 },
-
 PIAC:{
 name:"タイプB",
 text:"勢いと演技力で空気を支配する主人公型。"
 },
-
 PINO:{
 name:"タイプC",
 text:"自然体で笑いを生み出す観察型。"
 },
-
 PINC:{
 name:"タイプD",
 text:"瞬発力抜群のムードメーカー型。"
 },
-
 SBAO:{
 name:"タイプM",
 text:"丁寧な構成とセンスが光る職人型。"
 },
-
 SBNC:{
 name:"タイプP",
 text:"自分らしさを武器にした万能型。"
 }
-
 };
 
-if(resultData[type]){
-
-document.getElementById("typeName").innerHTML=resultData[type].name;
-
-document.getElementById("description").innerHTML=resultData[type].text;
-
-}else{
-
-document.getElementById("typeName").innerHTML="未設定タイプ";
-
-document.getElementById("description").innerHTML="今後追加予定です。";
-
+if (resultData[type]) {
+  document.getElementById("typeName").innerHTML = resultData[type].name;
+  document.getElementById("description").innerHTML = resultData[type].text;
+} else {
+  document.getElementById("typeName").innerHTML = "未設定タイプ";
+  document.getElementById("description").innerHTML = "今後追加予定です。";
 }
 
-function shareResult(){
+/* =========================
+   シェア
+========================= */
 
-const text=
+function shareResult() {
+  const text = "私の芸能ステータス診断は「" + type + "」でした！";
+  const url = "https://migimimisan.github.io/owarai/";
 
-"私の芸能ステータス診断は「"+
-
-type+
-
-"」でした！";
-
-const url=
-
-"https://migimimisan.github.io/owarai/";
-
-window.open(
-
-"https://twitter.com/intent/tweet?text="+
-
-encodeURIComponent(text)+"&url="+
-
-encodeURIComponent(url)
-
-);
-
+  window.open(
+    "https://twitter.com/intent/tweet?text=" +
+    encodeURIComponent(text) +
+    "&url=" +
+    encodeURIComponent(url)
+  );
 }
 
 </script>
 
 </body>
-
 </html>
